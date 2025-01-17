@@ -44,21 +44,42 @@ func main() {
 	}
 }
 
+const (
+	windShiftDuration = 6.527979824107605
+)
+
+var n = 0
+var val = 5.5
+
+func calcWindShiftN(sec float64) float64 {
+	for {
+		if sec < val {
+			break
+		}
+		val = 5.5 + windShiftDuration*float64(n)
+		n++
+	}
+	return val
+}
+
 func write(elapsed time.Duration) {
 	sec := elapsed.Seconds()
 	windDirection := ""
 	if sec <= 5.5 {
 		windDirection = "右"
-	} else if int((sec-5.5)/6.527979824107605)%2 == 0 {
+	} else if int((sec-5.5)/windShiftDuration)%2 == 0 {
 		windDirection = "左"
 	} else {
 		windDirection = "右"
 	}
 
-	fmt.Print("\033[1;8H\033[K") // Move up two lines and clear
+	fmt.Print("\033[?25l")       // カーソルを非表示にする
+	defer fmt.Print("\033[?25h") // 関数終了時にカーソルを再表示する
+
+	fmt.Print("\033[1;8H\033[K")
 	fmt.Printf("%s\n", formatDuration(elapsed))
-	// fmt.Print("\r\033[K")
 	fmt.Printf("%s\n", windDirection)
+	fmt.Printf("next: %s\n", formatDuration(time.Duration(calcWindShiftN(sec)*float64(time.Second))))
 }
 
 func formatDuration(d time.Duration) string {
